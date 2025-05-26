@@ -1,5 +1,3 @@
-
-
 /**
  *
  * @author bruno
@@ -12,4 +10,3 @@ public class IntNoSimples {
         prox = null;
     }
  }
-

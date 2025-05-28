@@ -50,7 +50,9 @@ public class Exercicio {
                         "6. Ver Pedidos Ativos\n" +
                         "7. Consultar Histórico\n" +
                         "8. Reencaminhar Pedido Finalizado\n" +
-                        "9. Sair");
+                        "9. Relátorio de pedidos finalizados\n" +
+                        "10. Sair");
+
                         if (temp_Opcao.matches(regex)) {
                             opção = Integer.parseInt(temp_Opcao);
                             opcaoValida = true;
@@ -73,39 +75,49 @@ public class Exercicio {
                     emFila.enfileirar(idPedido);
                     break;
                 case 2:
-                    // Aceitar Pedido
-                    // Mover pedido da fila para a lista
-                    if (emFila.vazia()) {
-                        JOptionPane.showMessageDialog(null, "Não há pedidos na fila para aceitar.");
-                        break;
-                    } else {
+                        // Aceitar Pedido
+
+
+                        if (emFila.vazia()) { // checa se a fila está vazia, se sim impede de aceitar
+                            JOptionPane.showMessageDialog(null, "Não há pedidos na fila para aceitar.");
+                            break;
+                        }
+
                         boolean pedidoEmPreparo = false;
-                        for (int i = 0; i < fimFila; i++) {
+                        for (int i = 0; i < fimFila; i++) { // verifica se já existe um pedido em preparo
                             if (filaPedidos[i].status.equals("Em preparo")) {
                                 pedidoEmPreparo = true;
                                 break;
                             }
                         }
-                        if (pedidoEmPreparo) {
-                            JOptionPane.showMessageDialog(null,
-                                    "Já existe um pedido em preparo, finalize-o antes de aceitar outro.");
+
+                        if (pedidoEmPreparo) { // se existir um pedido em preparo, impede de continuar
+                            JOptionPane.showMessageDialog(null, "Já existe um pedido em preparo, finalize-o antes de aceitar outro.");
                             break;
-                        } else {
-                            for (int i = 0; i < fimFila; i++) {
-                                if (filaPedidos[i].status.equals("Na fila")) {
-                                    filaPedidos[i].status = "Em preparo";
-                                    int temp_no = Integer.parseInt(emFila.desenfileirar());
-                                    emPreparo.insereNo_inicio(new IntNoSimples(temp_no));
-                                    JOptionPane.showMessageDialog(null, "Pedido aceito:\n" + filaPedidos[i].toString());
-                                    break;
-                                }
+                        }
+
+                        int temp_no = Integer.parseInt(emFila.desenfileirar());
+                        boolean encontrado = false;
+
+                        for (int i = 0; i < fimFila; i++) { // transforma o status do pedido em "Em Preparo" e o insere na lista
+                            if (filaPedidos[i].id == temp_no) {
+                                filaPedidos[i].status = "Em preparo";
+                                emPreparo.insereNo_inicio(new IntNoSimples(temp_no));
+                                JOptionPane.showMessageDialog(null, "Pedido aceito:\n" + filaPedidos[i].toString());
+                                encontrado = true;
+                                break;
                             }
                         }
-                    }
-                    break;
+
+                        if (!encontrado) { // se o pedido não for achado ele dá um erro, mas creio que é impossivel não achar
+                            JOptionPane.showMessageDialog(null, "Erro interno: Pedido com ID " + temp_no + " não encontrado.");
+                        }
+
+                        break;
                 case 3:
                     // Adicionar Etapa
                     // Adicionar etapa à pilha do pedido
+
                     boolean jaEmPreparoAdicionar = false;
                     for (int i = 0; i < fimFila; i++) {
                         if (filaPedidos[i].status.equals("Em preparo")) {
@@ -120,6 +132,7 @@ public class Exercicio {
                         } else {
                             JOptionPane.showMessageDialog(null, "Excedeu o limite de etapas");
                         }
+
                     } else {
                         JOptionPane.showMessageDialog(null, "Aceite um pedido para inserir etapas");
                     }
@@ -191,7 +204,7 @@ public class Exercicio {
                     int pesquisa = Integer.parseInt(JOptionPane.showInputDialog("Informe o ID do pedido para consultar o histórico:"));
                     for (int i = 0; i < fimFila; i++) {
                         if (filaPedidos[i].id == pesquisa) {
-                            JOptionPane.showMessageDialog(null, "Pedido ativo:\n" + filaPedidos[i].toString());
+                            JOptionPane.showMessageDialog(null, "Histórico do pedido do ID "+i+":\n" + filaPedidos[i].historico);
                             pedidoFinalizadoHistorico = true;
                         }
                     }
@@ -203,30 +216,41 @@ public class Exercicio {
                 case 8:
                     // Reencaminhar pedido finalizado para a fila (ex: reclamação do cliente)
                     int temp = Integer.parseInt(JOptionPane.showInputDialog("Informe o ID do pedido para aceitar:"));
-                    boolean reclamacao = false;
+                    boolean pedidoEncontrado = false;
                     for (int i = 0; i < fimFila; i++) {
                         if (filaPedidos[i].id == temp && filaPedidos[i].status.equals("Finalizado")) {
                             filaPedidos[i].status = "Na Fila";
-                            
+                            emFila.enfileirar(filaPedidos[i].id); // coloca na fila, o ID do pedido finalizado
                             JOptionPane.showMessageDialog(null, "Pedido Reeintroduzido na fila:\n" + filaPedidos[i].toString());
+                            pedidoEncontrado = true;
                             break;
-                        } else {
-                            reclamacao = true;
                         }
                     }
-                    if (!reclamacao) {
+                    if (!pedidoEncontrado) {
                         JOptionPane.showMessageDialog(null, "Pedido não encontrado ou já em preparo.");
                     }
-
                     break;
                 case 9:
+                    // Relatório dos Pedidos Finalizados
+                    boolean pedidoFinalizadoHistorico_Relatorio = false;
+                    for (int i = 0; i < fimFila; i++) {
+                        if (filaPedidos[i].status.equals("Finalizado")) {
+                            JOptionPane.showMessageDialog(null, "Relatório do pedido do ID "+i+":\n" + filaPedidos[i].toString());
+                            pedidoFinalizadoHistorico_Relatorio = true;
+                        }
+                    }
+                    if (!pedidoFinalizadoHistorico_Relatorio) {
+                        JOptionPane.showMessageDialog(null, "Não há pedidos finalizados.");
+                    }
+                    break;
+                case 10:
                     // Sair
                     JOptionPane.showMessageDialog(null, "Encerrando programa. Obrigado pela preferência!");
                     break;
                 default:
                     JOptionPane.showMessageDialog(null, "Opção inválida!");
             }
-        } while (opção != 9);
+        } while (opção != 10);
 
     }
 
